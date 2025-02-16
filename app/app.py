@@ -33,8 +33,13 @@ def update_map(mode, year, compare_year):
         color_data = merged[year]
         title = f"Internet Usage in {year}"
     else:
-        color_data = merged[year] - merged[compare_year]
-        title = f"Change in Internet Usage ({year} - {compare_year})"
+        color_data = abs(merged[year] - merged[compare_year])
+        if (merged[year].mean() - merged[compare_year].mean())<0:
+            variation = "Increase"
+        else:
+            variation="Decrease"
+            
+        title = f"Value of {variation} in Internet Usage ({year} - {compare_year})"
 
     fig = px.choropleth(
         merged,
@@ -47,9 +52,61 @@ def update_map(mode, year, compare_year):
     )
 
     fig.update_geos(fitbounds="locations", visible=False)
-    fig.update_layout(title=title, title_x=0.5, coloraxis_colorbar={'title': '%'})
+    fig.update_layout(title=title, title_x=0.5, coloraxis_colorbar=dict(
+        tickvals=[10, 20, 30, 40, 50, 60, 70, 80, 90], 
+        ticktext=["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90"],
+        tickmode='array',
+        ticks="",  
+        title="%"
+    ),coloraxis=dict(
+        cmin=0,  
+        cmax=100  
+    ))
 
     return fig
+@app.callback(
+    Output('box-plot-1', 'figure'),
+    [Input('year-selector-1', 'value'),
+     Input('grouping-variable', 'value')]
+)
+def update_box_plot_1(year, grouping_variable):
+    # Group the data by the selected variable and plot a box plot for the selected year
+    fig = px.box(
+        merged, 
+        x=grouping_variable, 
+        y=year,
+        points="all",  # Display all data points
+        title=f"Internet Usage Box Plots by {grouping_variable} in {year}",
+        hover_data="Country Name"
+    )
+    fig.update_layout(
+        yaxis=dict(range=[-5, 105]),
+        xaxis_title=''
+    )
+    return fig
+
+# Callback to update the second box plot
+@app.callback(
+    Output('box-plot-2', 'figure'),
+    [Input('year-selector-2', 'value'),
+     Input('grouping-variable', 'value')]
+)
+def update_box_plot_2(year, grouping_variable):
+    # Group the data by the selected variable and plot a box plot for the selected year
+    fig = px.box(
+        merged, 
+        x=grouping_variable, 
+        y=year,
+        points="all",  # Display all data points
+        title=f"Internet Usage Box Plots by {grouping_variable} in {year}",
+        hover_data="Country Name"
+    )
+    fig.update_layout(
+        yaxis=dict(range=[-5, 105]),
+        xaxis_title=''
+    )
+    return fig
+
 
 server = app.server
 

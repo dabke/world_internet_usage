@@ -56,7 +56,7 @@ def load_and_prepare_data():
         merged = gpd.GeoDataFrame(merged, geometry="geometry")
 
     # Simplify geometries for lighter computation
-    merged["geometry"] = merged["geometry"].simplify(0.01)
+    merged["geometry"] = merged["geometry"].simplify(0.05)
 
     # Convert to GeoJSON for plotting
     geojson = merged.to_json()
