@@ -67,27 +67,27 @@ def update_map(mode, year, compare_year):
     return fig
 
 # @app.callback(
-#     [Output("top-5-countries", "children"),
-#      Output("bottom-5-countries", "children"),
-#      Output("median-usage", "children")],
-#     [Input("year_selector", "value")]
+#     Output("compare_year_selector", "options"),
+#     Input("year_selector", "value")
 # )
-# def update_statistics(year):
-#     year = str(year)  # Ensure it's an integer
-#     data_year = merged[['Country Name', year]].dropna().sort_values(by=year,ascending=False)
+# def update_compare_year_options(year):
+#     year = int(year)
+#     # Generate the options for the compare_year dropdown, only including years greater than the selected year
+#     options = [{'label': str(y), 'value': str(y)} for y in range(year + 1, 2023)]
+#     return options
+@app.callback(
+    [Output("compare_year_selector", "options"),
+     Output("compare_year_selector", "value")],  # Ensure the default value is set correctly
+    [Input("year_selector", "value")]
+)
+def update_compare_year_options(year):
+    year = int(year)
+    # Generate the options for the compare_year dropdown, only including years greater than the selected year
+    options = [{'label': str(y), 'value': str(y)} for y in range(year + 1, 2023)]
     
-#     # Top 5 and Bottom 5 countries
-#     top_5 = data_year.head(5)
-#     bottom_5 = data_year.tail(5)
-
-#     # Compute median
-#     median_usage = data_year[year].median()
-
-#     # Convert to list items for display
-#     top_5_list = [html.Li(f"{row['Country Name']}: {row[year]:.2f}%") for _, row in top_5.iterrows()]
-#     bottom_5_list = [html.Li(f"{row['Country Name']}: {row[year]:.2f}%") for _, row in bottom_5.iterrows()]
-
-#     return top_5_list, bottom_5_list, f"{median_usage:.2f}%"
+    # Ensure there's a default value, if no options are available, set it to None or hide the dropdown
+    default_value = options[0]['value'] if options else None
+    return options, default_value
 
 @app.callback(
     [Output("top-5-countries", "children"),
@@ -99,26 +99,26 @@ def update_map(mode, year, compare_year):
 )
 def update_statistics(mode, year, compare_year):
     if mode == "single":
-        data = merged[[year]].dropna()
+        data = merged[["Country Name",year]].dropna()
         data_sorted = data.sort_values(by=year, ascending=False)
         top5 = data_sorted.head(5)
         bottom5 = data_sorted.tail(5)
         median = data[year].median()
 
-        top5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(top5.index, top5[year])]
-        bottom5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(bottom5.index, bottom5[year])]
+        top5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(top5["Country Name"], top5[year])]
+        bottom5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(bottom5["Country Name"], bottom5[year])]
         median_text = f"Median Internet Usage in {year}: {median:.2f}%"
     
     else:  # Compare mode
-        data = merged[[year, compare_year]].dropna()
+        data = merged[["Country Name",year, compare_year]].dropna()
         data["Difference"] = data[compare_year] - data[year]
         data_sorted = data.sort_values(by="Difference", ascending=False)
         top5 = data_sorted.head(5)
         bottom5 = data_sorted.tail(5)
         median = data["Difference"].median()
 
-        top5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(top5.index, top5["Difference"])]
-        bottom5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(bottom5.index, bottom5["Difference"])]
+        top5_list = [html.Li(f"{country}: +{value:.2f}%") for country, value in zip(top5["Country Name"], top5["Difference"])]
+        bottom5_list = [html.Li(f"{country}: +{value:.2f}%") for country, value in zip(bottom5["Country Name"], bottom5["Difference"])]
         median_text = f"Median Change ({year} - {compare_year}): {median:.2f}%"
 
     return html.Ul(top5_list), html.Ul(bottom5_list), html.P(median_text)
