@@ -1,7 +1,7 @@
+# OBSOLETE not USing it any more
 from dash import Input, Output
 import plotly.express as px
-from app.data_loader import merged
-from app.app import app  # Import the Dash app
+#from app import app  # Import the Dash app
 
 # Callback to show/hide the second year dropdown
 @app.callback(
