@@ -1,6 +1,7 @@
 from dash import Dash
 import dash_bootstrap_components as dbc
 from dash import Input, Output
+from dash import html
 from app.layout import layout
 from app.data_loader import load_and_prepare_data
 import plotly.express as px
@@ -64,6 +65,64 @@ def update_map(mode, year, compare_year):
     ))
 
     return fig
+
+# @app.callback(
+#     [Output("top-5-countries", "children"),
+#      Output("bottom-5-countries", "children"),
+#      Output("median-usage", "children")],
+#     [Input("year_selector", "value")]
+# )
+# def update_statistics(year):
+#     year = str(year)  # Ensure it's an integer
+#     data_year = merged[['Country Name', year]].dropna().sort_values(by=year,ascending=False)
+    
+#     # Top 5 and Bottom 5 countries
+#     top_5 = data_year.head(5)
+#     bottom_5 = data_year.tail(5)
+
+#     # Compute median
+#     median_usage = data_year[year].median()
+
+#     # Convert to list items for display
+#     top_5_list = [html.Li(f"{row['Country Name']}: {row[year]:.2f}%") for _, row in top_5.iterrows()]
+#     bottom_5_list = [html.Li(f"{row['Country Name']}: {row[year]:.2f}%") for _, row in bottom_5.iterrows()]
+
+#     return top_5_list, bottom_5_list, f"{median_usage:.2f}%"
+
+@app.callback(
+    [Output("top-5-countries", "children"),
+     Output("bottom-5-countries", "children"),
+     Output("median-usage", "children")],
+    [Input("map_mode", "value"),
+     Input("year_selector", "value"),
+     Input("compare_year_selector", "value")]
+)
+def update_statistics(mode, year, compare_year):
+    if mode == "single":
+        data = merged[[year]].dropna()
+        data_sorted = data.sort_values(by=year, ascending=False)
+        top5 = data_sorted.head(5)
+        bottom5 = data_sorted.tail(5)
+        median = data[year].median()
+
+        top5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(top5.index, top5[year])]
+        bottom5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(bottom5.index, bottom5[year])]
+        median_text = f"Median Internet Usage in {year}: {median:.2f}%"
+    
+    else:  # Compare mode
+        data = merged[[year, compare_year]].dropna()
+        data["Difference"] = data[compare_year] - data[year]
+        data_sorted = data.sort_values(by="Difference", ascending=False)
+        top5 = data_sorted.head(5)
+        bottom5 = data_sorted.tail(5)
+        median = data["Difference"].median()
+
+        top5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(top5.index, top5["Difference"])]
+        bottom5_list = [html.Li(f"{country}: {value:.2f}%") for country, value in zip(bottom5.index, bottom5["Difference"])]
+        median_text = f"Median Change ({year} - {compare_year}): {median:.2f}%"
+
+    return html.Ul(top5_list), html.Ul(bottom5_list), html.P(median_text)
+
 @app.callback(
     Output('box-plot-1', 'figure'),
     [Input('year-selector-1', 'value'),
@@ -81,7 +140,8 @@ def update_box_plot_1(year, grouping_variable):
     )
     fig.update_layout(
         yaxis=dict(range=[-5, 105]),
-        xaxis_title=''
+        xaxis_title='',
+        yaxis_title='% internet usage'
     )
     return fig
 
@@ -103,7 +163,8 @@ def update_box_plot_2(year, grouping_variable):
     )
     fig.update_layout(
         yaxis=dict(range=[-5, 105]),
-        xaxis_title=''
+        xaxis_title='',
+        yaxis_title='% internet usage'
     )
     return fig
 

@@ -32,8 +32,28 @@ layout = html.Div([
         )
     ], style={'width': '20%', 'margin': 'auto'}),
 
-    # World map visualization
-    dcc.Loading(id="loading-plot", children=[dcc.Graph(id="world_map")]),
+    html.Div([
+        # Information Panel (Top 5, Bottom 5, and Median)
+        html.Div([
+            html.H3("Key Statistics"),
+            html.P("Top 5 Countries:", style={'font-weight': 'bold'}),
+            html.Ul(id="top-5-countries"),
+            html.P("Bottom 5 Countries:", style={'font-weight': 'bold'}),
+            html.Ul(id="bottom-5-countries"),
+            html.P("Median Internet Usage:", style={'font-weight': 'bold'}),
+            html.P(id="median-usage"),
+        ], style={'width': '25%', 'padding': '20px', 'display': 'inline-block', 'vertical-align': 'top'}),
+
+        # World Map Visualization
+        html.Div([
+            dcc.Loading(id="loading-plot", children=[dcc.Graph(id="world_map")])
+        ], style={'width': '70%', 'display': 'inline-block'})
+    ]),
+
+    
+
+    # # World map visualization
+    # dcc.Loading(id="loading-plot", children=[dcc.Graph(id="world_map")]),
 
     html.Hr(),
     html.H3("Box Plots By Continent or Income Group"),
